@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SkinDrop — CS2 Cases & Upgrade</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<canvas id="fx"></canvas>
+<div id="toasts"></div>
+
+<!-- AUTH -->
+<div id="authScreen">
+  <div class="authCard">
+    <div class="authLogo"><span class="mark">S</span><span>Skin</span><span>Drop</span></div>
+    <p class="authLead">Кейсы, апгрейд и инвентарь CS2</p>
+    <div class="authTabs">
+      <button type="button" id="tabLogin" class="active">Войти</button>
+      <button type="button" id="tabReg">Регистрация</button>
+    </div>
+    <input type="text" id="loginName" placeholder="Никнейм" maxlength="20" autocomplete="username">
+    <input type="password" id="loginPass" placeholder="Пароль" maxlength="32" autocomplete="current-password">
+    <button type="button" id="loginBtn" class="btn primary block">Войти</button>
+    <p id="loginErr" class="err"></p>
+    <p class="hint">Данные хранятся только в твоём браузере</p>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" hidden>
+  <div id="liveBar">
+    <span class="liveTag">LIVE</span>
+    <div id="liveTrack"></div>
+  </div>
+
+  <header class="topbar">
+    <div class="brand"><span class="mark">S</span><span>Skin</span><span>Drop</span></div>
+    <nav class="nav">
+      <button type="button" class="navBtn active" data-page="cases">Кейсы</button>
+      <button type="button" class="navBtn" data-page="upgrade">Апгрейд</button>
+      <button type="button" class="navBtn" data-page="inv">Инвентарь</button>
+      <button type="button" class="navBtn" data-page="cat">Каталог</button>
+      <button type="button" class="navBtn" data-page="missions">Миссии</button>
+      <button type="button" class="navBtn" data-page="top">Топ</button>
+      <button type="button" class="navBtn" data-page="profile">Профиль</button>
+    </nav>
+    <div class="topbarRight">
+      <button type="button" id="dailyBtn" class="chip gold">🎁 Бонус</button>
+      <div class="chip green" id="levelBadge">Lv <b id="levelNum">1</b></div>
+      <div class="chip orange" id="streakBadge" hidden>🔥 <b id="streakNum">0</b></div>
+      <button type="button" id="themeBtn" class="iconBtn" title="Сменить тему">◐</button>
+      <div class="balChip">✦ <b id="balance">0</b></div>
+    </div>
+  </header>
+
+  <section id="page-cases" class="page active">
+    <div class="heroBanner">
+      <div>
+        <div class="heroTag">CS2 SKINS</div>
+        <h1>Кейсы</h1>
+        <p>Нажми на кейс → крути рулетку → забери скин или сразу в апгрейд</p>
+      </div>
+      <div class="heroStats">
+        <div><b>208+</b><span>скинов</span></div>
+        <div><b>20</b><span>кейсов</span></div>
+        <div><b>LIVE</b><span>дропы</span></div>
+      </div>
+    </div>
+    <div id="casesGrid" class="casesGrid"></div>
+  </section>
+
+  <section id="page-upgrade" class="page">
+    <div class="sectionHead"><h1>Апгрейд</h1><p class="sub">1) Ставка слева · 2) Цель справа · 3) Кнопка «Апгрейд»</p></div>
+    <div class="quickStrip" id="quickInv"></div>
+    <div class="quickTargets">
+      <span class="quickLabel">Быстрая цель:</span>
+      <button type="button" class="qTgt" data-mult="2">×2 цена</button>
+      <button type="button" class="qTgt" data-mult="3">×3</button>
+      <button type="button" class="qTgt" data-mult="5">×5</button>
+      <button type="button" class="qTgt" data-mult="10">×10</button>
+    </div>
+    <div class="upgradeRow">
+      <div class="slot" id="sourceSlot">
+        <div class="slotLabel">СТАВКА</div>
+        <div id="sourceBody" class="slotBody"><div class="placeholder">+</div><span>Инвентарь или монеты</span></div>
+        <div id="sourcePrice" class="slotPrice" hidden></div>
+        <button type="button" id="clearSource" class="clearBtn" hidden>×</button>
+      </div>
+      <div class="spinCol">
+        <div class="dialWrap">
+          <svg class="dialSvg" viewBox="0 0 320 320">
+            <defs>
+              <linearGradient id="arcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#ff2d55"/>
+                <stop offset="55%" stop-color="#ffd60a"/>
+                <stop offset="100%" stop-color="#3dff8a"/>
+              </linearGradient>
+              <filter id="glow"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            </defs>
+            <circle cx="160" cy="160" r="148" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+            <g id="tickMarks"></g>
+            <circle cx="160" cy="160" r="120" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="16"/>
+            <circle id="chanceArc" cx="160" cy="160" r="120" fill="none" stroke="url(#arcGrad)" stroke-width="16"
+              stroke-linecap="round" stroke-dasharray="0 755" transform="rotate(-90 160 160)" filter="url(#glow)"/>
+          </svg>
+          <div id="needle" class="needle"><div class="needleArrow"></div></div>
+          <div class="dialCenter">
+            <div id="chanceText">—</div>
+            <div id="chanceSub">шанс</div>
+          </div>
+        </div>
+        <button type="button" id="upgradeBtn" class="btn primary lg" disabled>Апгрейд</button>
+        <div class="multRow">
+          <button type="button" class="multBtn active" data-mult="1">×1</button>
+          <button type="button" class="multBtn" data-mult="2">×2</button>
+          <button type="button" class="multBtn" data-mult="5">×5</button>
+          <button type="button" class="multBtn" data-mult="10">×10</button>
+        </div>
+      </div>
+      <div class="slot" id="targetSlot">
+        <div class="slotLabel">ЦЕЛЬ</div>
+        <div id="targetBody" class="slotBody"><div class="placeholder">◎</div><span>Из каталога</span></div>
+        <div id="targetPrice" class="slotPrice" hidden></div>
+        <button type="button" id="clearTarget" class="clearBtn" hidden>×</button>
+      </div>
+    </div>
+    <div class="coinRow">
+      <span>Монеты:</span>
+      <button type="button" class="coinBtn" data-pct="10">10%</button>
+      <button type="button" class="coinBtn" data-pct="25">25%</button>
+      <button type="button" class="coinBtn" data-pct="50">50%</button>
+      <button type="button" class="coinBtn" data-pct="100">Всё</button>
+    </div>
+  </section>
+
+  <section id="page-inv" class="page">
+    <div class="sectionHead"><h1>Инвентарь</h1><p class="sub"><span id="invCount">0</span> предметов · <span id="invSum">0</span> ✦</p></div>
+    <div id="invGrid" class="grid"></div>
+  </section>
+
+  <section id="page-cat" class="page">
+    <div class="sectionHead"><h1>Каталог</h1><p class="sub">Найди скин для ставки или цели</p></div>
+    <div class="catTools">
+      <input type="text" id="catSearch" placeholder="Поиск скина…">
+      <select id="catSort">
+        <option value="default">По умолчанию</option>
+        <option value="price-desc">Цена ↓</option>
+        <option value="price-asc">Цена ↑</option>
+        <option value="name">Имя A–Z</option>
+      </select>
+    </div>
+    <div class="tabs">
+      <button type="button" class="tabBtn active" data-cat="all">Все</button>
+      <button type="button" class="tabBtn" data-cat="knives">Ножи</button>
+      <button type="button" class="tabBtn" data-cat="rifles">Винтовки</button>
+      <button type="button" class="tabBtn" data-cat="pistols">Пистолеты</button>
+      <button type="button" class="tabBtn" data-cat="gloves">Перчатки</button>
+    </div>
+    <div id="catGrid" class="grid"></div>
+  </section>
+
+  <section id="page-missions" class="page">
+    <div class="sectionHead"><h1>Миссии</h1><p class="sub">Выполняй задания и забирай награды</p></div>
+    <div id="missionsList" class="missionsList"></div>
+    <div class="promoBox">
+      <h3>Промокод</h3>
+      <div class="promoRow">
+        <input type="text" id="promoInput" placeholder="Введи код" maxlength="24">
+        <button type="button" id="promoBtn" class="btn primary" style="width:auto;min-width:130px">Активировать</button>
+      </div>
+      <p class="hint">SKINDROP · VIP1000 · KNIFE · LEVELUP</p>
+    </div>
+  </section>
+
+  <section id="page-top" class="page">
+    <div class="sectionHead"><h1>Топ игроков</h1><p class="sub">По состоянию: баланс + инвентарь</p></div>
+    <div id="topList"></div>
+  </section>
+
+  <section id="page-profile" class="page">
+    <div id="profileBox" class="profileBox"></div>
+  </section>
+</div>
+
+<!-- CASE MODAL -->
+<div id="caseModal" class="modal" hidden>
+  <div class="modalInner">
+    <div id="caseModalTitle" class="modalTitle"></div>
+    <div class="roulette">
+      <div class="rouletteLine"></div>
+      <div id="rouletteTrack" class="rouletteTrack"></div>
+    </div>
+    <div id="caseResult" hidden>
+      <img id="caseResultImg" alt="">
+      <div id="caseResultName"></div>
+      <div id="caseResultPrice"></div>
+      <div class="modalBtns">
+        <button type="button" id="caseUpgradeBtn" class="btn primary">В апгрейд</button>
+        <button type="button" id="caseTakeBtn" class="btn green">В инвентарь</button>
+        <button type="button" id="caseAgainBtn" class="btn ghost">Ещё раз</button>
+      </div>
+    </div>
+    <button type="button" id="caseCloseBtn" class="btnText">Закрыть</button>
+  </div>
+</div>
+
+<div id="dailyModal" class="modal" hidden>
+  <div class="modalInner small">
+    <div class="modalEmoji">🎁</div>
+    <h2 id="dailyTitle">Ежедневный бонус</h2>
+    <p id="dailyMsg"></p>
+    <div class="xpBarWrap"><div class="xpBar" id="xpBar"></div></div>
+    <p id="xpText" class="hint"></p>
+    <button type="button" id="dailyOkBtn" class="btn primary block">Забрать</button>
+  </div>
+</div>
+
+<div id="resultModal" class="modal" hidden>
+  <div class="modalInner small">
+    <div id="resultIcon" class="modalEmoji"></div>
+    <h2 id="resultTitle"></h2>
+    <p id="resultMsg"></p>
+    <button type="button" id="resultOkBtn" class="btn primary block">OK</button>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
